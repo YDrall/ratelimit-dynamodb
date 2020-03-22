@@ -1,6 +1,6 @@
 ### Multi-region & Distributed Rate limiting system using Dynamodb
 
-#### Note: This repository provides an outline of the overall design and architecture and only is for demo purposes at the moment.
+#### Note: This repository provides an outline of the overall design and architecture and only for demo purposes at the moment.
 
 #### Requirements:
 
@@ -68,3 +68,25 @@ Implementation of this bucket approach in dynamodb:
 1. Create buckets with user id as primary hash key and bucket timestamp as range key. In addition every column will have the request count value too.
 2. Now query the table for last n buckets and add the requests count of all the buckets.
 3. Step 2 can be performed asynchronously. We can do it by running a periodic job every n seconds. This periodic job will create buckets by reading the timestamp of last n seconds.
+
+This repository is handling both hourly and monthly limits as well inside single table of database. Look at the sample implementation in app.py file.
+
+
+### Challenge #2
+
+A third-party has a limit of 100 per second. This limit applies to the project, which means
+it has to be used across all 200 customers.
+
+Approach:
+
+* First come first serve: We can keep serving the user until we hit the limit bounds. The downside of the approach is that few user can use up all the limit and other users will always get limit shortage error.
+* Upper limit per user: This is an optimization on above approach. We can put an upper limit for each user. A user can't cross its upper limit.
+* Priority Queue: Queue all the requests in a queue and set prioritise users based on requests of user in last 1 second.
+
+
+##### Priority Queue Based processing:
+
+* We can keep the count of user's requests in last 1 second using the rate limiting approach.
+* For priority queue we will use sorted sets in Redis. The user id will be the key and value will be calculated as follows (third party api limit - user's request count of last 1 second). So the user will maximum quota left will be front of queue.
+* A job to process the request queue and put the result in db or somehow let client know that the request is complete.
+* The job will first check if the api quota is remaining or not, if no quota is left then mark all items in the queues as failed. otherwise keep processing the queue until the rate limit is over or queue becomes empty.

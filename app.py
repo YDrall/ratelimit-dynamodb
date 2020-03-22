@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 from dynamodb import DynamoDb
 
 TABLE_NAME = os.environ.get('RATE_LIMIT_TABLE')
-MONTHLY_TABLE_INDEX_NAME = os.environ.get('MONTHLY_RATE_LIMIT_INDEX')
-YEARLY_TABLE_INDEX_NAME = os.environ.get('YEARLY_RATE_LIMIT_INDEX')
 SECONDS_RATE_LIMIT = os.environ.get('SECONDS_RATE_LIMIT', 50)
 HOURLY_RATE_LIMIT = os.environ.get('HOURLY_RATE_LIMIT', 1000)
 MONTHLY_RATE_LIMIT = os.environ.get('MONTHLY_RATE_LIMIT', 20000)
@@ -33,7 +31,7 @@ def check_rate_limit(user_id):
 
     hourly_records = db.query_range(TABLE_NAME, hash_key, user_id,
                                     range_key, utc_time - timedelta(seconds=3600), utc_time,
-                                    index_name=MONTHLY_TABLE_INDEX_NAME).get('Items')
+                                    ).get('Items')
     total_hourly_count = 0
     for hr in hourly_records:
         total_hourly_count += hr.get('hourly_count', 0)
@@ -42,7 +40,7 @@ def check_rate_limit(user_id):
 
     monthly_records = db.query_range(TABLE_NAME, hash_key, user_id,
                                      range_key, utc_time - timedelta(seconds=3600 * 24), utc_time,
-                                     index_name=YEARLY_TABLE_INDEX_NAME).get('Items')
+                                     ).get('Items')
     total_monthly_count = 0
     for mr in monthly_records:
         total_monthly_count += mr.get('monthly_count', 0)
@@ -55,6 +53,11 @@ def check_rate_limit(user_id):
 
 
 def create_hour_batch(user_id):
+    """
+    Run periodically to create hour batch.
+    :param user_id:
+    :return:
+    """
     db = DynamoDb()
     utc_time = datetime.utcnow()
     hash_key = 'user_id'
@@ -75,6 +78,11 @@ def create_hour_batch(user_id):
 
 
 def create_month_batch(user_id):
+    """
+    Run periodically to create hour batch.
+    :param user_id:
+    :return:
+    """
     db = DynamoDb()
     utc_time = datetime.utcnow()
     hash_key = 'user_id'
