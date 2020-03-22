@@ -1,0 +1,51 @@
+RateLimitTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: RateLimitTable
+    AttributeDefinitions:
+      -
+        AttributeName: "user_id"
+        AttributeType: "S"
+      -
+        AttributeName: "timestamp"
+        AttributeType: "S"
+      -
+        AttributeName: "hour_timestamp"
+        AttributeType: "S"
+      -
+        AttributeName: "monthly_timestamp"
+        AttributeType: "S"
+
+    KeySchema:
+      -
+        AttributeName: "user_id"
+        KeyType: "HASH"
+      -
+        AttributeName: "timestamp"
+        KeyType: "RANGE"
+    GlobalSecondaryIndexes:
+      - IndexName: hour_bucket
+        KeySchema:
+          -
+            AttributeName: "user_id"
+            KeyType: "HASH"
+          -
+            AttributeName: "hour_timestamp"
+            KeyType: "RANGE"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+      - IndexName: month_bucket
+          KeySchema:
+            -
+              AttributeName: "user_id"
+              KeyType: "HASH"
+            -
+              AttributeName: "monthly_timestamp"
+              KeyType: "RANGE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+    ProvisionedThroughput:
+      ReadCapacityUnits: ${self:custom.db.rcu}
+      WriteCapacityUnits: ${self:custom.db.wcu}

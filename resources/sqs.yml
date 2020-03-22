@@ -1,0 +1,8 @@
+#SaveDataObject:
+#  Type: AWS::SQS::Queue
+#  Properties:
+#    QueueName: ${self:custom.sqs.SAVE_DYNAMO_QUEUE_NAME}
+#    MessageRetentionPeriod: ${self:custom.sqs.messageRetentionPeriod}
+#    VisibilityTimeout: ${self:custom.sqs.visibilityTimeout}
+#    MaximumMessageSize: ${self:custom.sqs.maximumMessageSize}
+#    ReceiveMessageWaitTimeSeconds: ${self:custom.sqs.receiveMessageWaitTimeSeconds}

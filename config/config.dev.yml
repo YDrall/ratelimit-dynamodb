@@ -1,0 +1,27 @@
+default:
+  stage: dev
+  region: localhost
+  name: ${self:service}-${self:provider.stage}
+  dynamoEndpoint: http://localhost:4568
+  s3EventBucketName: ${self:provider.stage}-event
+  s3EventEndpoint: http://localhost:4567
+  rate_limit_table: RateLimitTable
+  monthly_rate_limit_table_index: MonthlyRateLimitIndex
+  yearly_rate_limit_table_index: YearlyRateLimitIndex
+  seconds_rate_limit: 50
+  monthly_rate_limit: 1000
+  yearly_rate_limit: 20000
+
+lambda:
+  concurrency: 100
+  maxVersions: 4
+db:
+  rcu: 100
+  wcu: 100
+sqs:
+  messageRetentionPeriod: 86400 # 1 day -> (min: 1m, max: 14days, default: 4days)
+  visibilityTimeout: 240 # (min: 30sec , max: 12hours, default: 30sec)
+  maximumMessageSize: 262144 # 256KiB
+  receiveMessageWaitTimeSeconds: 3 # (min:1 , max: 20,)
+  ERROR_QUEUE_NAME: ERROR_QUEUE
+  SAVE_DYNAMO_QUEUE_NAME: SAVE_DYNAMO_QUEUE

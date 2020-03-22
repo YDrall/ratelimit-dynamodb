@@ -1,0 +1,9 @@
+#save_dataobject:
+#  handler: app.rate_limit
+#  reservedConcurrency: ${self:custom.lambda.concurrency}
+#  events:
+#    - http:
+#        path: /rate-limit
+#        method: get
+#        stages:
+#          - dev

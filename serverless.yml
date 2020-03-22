@@ -1,0 +1,92 @@
+service:  iamgekit-ratelimit
+
+provider:
+  name: aws
+  runtime: python3.6
+  versionFunctions: false
+  memorySize: 128
+  stage: ${opt:stage, self:custom.default.stage} # prod | staging | dev
+  region: ${opt:region, self:custom.default.region}
+  environment:
+    REGION: ${self:custom.default.region}
+    STAGE: ${self:custom.default.stage}
+    DYNAMO_ENDPOINT: ${self:custom.default.dynamoEndpoint}
+    RATE_LIMIT_TABLE: ${self:custom.default.rate_limit_table}
+    MONTHLY_RATE_LIMIT_INDEX: ${self:custom.default.monthly_rate_limit_table_index}
+    YEARLY_RATE_LIMIT_INDEX: ${self:custom.default.YearlyRateLimitIndex}
+    SECONDS_RATE_LIMIT: ${self:custom.default.seconds_rate_limit}
+    HOURLY_RATE_LIMIT: ${self:custom.default.monthly_rate_limit}
+    MONTHLY_RATE_LIMIT: ${self:custom.default.yearly_rate_limit}
+
+package:
+  include:
+    - handlers/**
+    - core/**
+  exclude:
+    - .gitignore
+    - .git/**
+    - __pycache__/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - resources/**
+    - config/**
+    - docs/**
+    - .venv/**
+    - node_modules/**
+    - .serverless/**
+    - .dynamodb/**
+    - test/**
+
+custom:
+  default: ${file(./config/config.${opt:stage}.yml):default}
+  lambda: ${file(./config/config.${opt:stage}.yml):lambda}
+  db: ${file(./config/config.${opt:stage}.yml):db}
+  sqs: ${file(./config/config.${opt:stage}.yml):sqs}
+  prune:
+    automatic: true
+    number: ${self:custom.lambda.maxVersions}
+  pythonRequirements:
+    dockerizePip: false
+    slim: true
+  s3:
+    host: 0.0.0.0
+    port: 4567
+    directory: /tmp
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 4568
+      inMemory: true
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+  serverless-offline:
+    port: 4569
+
+functions:
+  # Lambda functions
+  save_dataobject: ${file(./resources/lambda/save_dataobject.yml):save_dataobject}
+  # Cron Jobs
+
+resources:
+  Resources:
+    # S3 Bucket
+    EventS3Bucket: ${file(./resources/s3.yml):EventS3Bucket}
+    # Dynamo Tables
+    ProfileTable: ${file(./resources/dynamo/rate-limit.yml):ProfileTable}
+    # SQS Queues
+    SaveDataObject: ${file(./resources/sqs.yml):SaveDataObject}
+    # Parameter Store
+    StageParameter: ${file(./resources/ssm.yml):StageParameter}
+    RegionParameter: ${file(./resources/ssm.yml):RegionParameter}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-s3-local
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-prune-plugin
+  # - serverless-step-functions
+  # - serverless-plugin-aws-alerts

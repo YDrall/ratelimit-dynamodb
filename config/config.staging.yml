@@ -1,0 +1,20 @@
+default:
+  stage: staging
+  region: us-west-1
+  name: ${self:service}-${self:provider.stage}
+  dynamoEndpoint: ${ssm:DYNAMO_ENDPOINT}
+  s3EventBucketName: ${ssm:S3_EVENT_ENDPOINT}
+  s3EventEndpoint: ${self:provider.stage}-event
+lambda:
+  concurrency: 2
+  maxVersions: 2
+db:
+  rcu: 100
+  wcu: 100
+sqs:
+  messageRetentionPeriod: 86400 # 1 day -> (min: 1m, max: 14days, default: 4days)
+  visibilityTimeout: 240 # (min: 30sec , max: 12hours, default: 30sec)
+  maximumMessageSize: 262144 # 256KiB
+  receiveMessageWaitTimeSeconds: 3 # (min:1 , max: 20,)
+  ERROR_QUEUE_NAME: ERROR_QUEUE
+  SAVE_DYNAMO_QUEUE_NAME: SAVE_DYNAMO_QUEUE

@@ -1,0 +1,15 @@
+#StageParameter:
+#  Type: "AWS::SSM::Parameter"
+#  Properties:
+#    Name: "STAGE"
+#    Type: "String"
+#    Value: ${self:provider.stage}
+#    Description: "Serverless Stage."
+#
+#RegionParameter:
+#  Type: "AWS::SSM::Parameter"
+#  Properties:
+#    Name: "REGION"
+#    Type: "String"
+#    Value: ${self:provider.region}
+#    Description: "Serverless Stage."
